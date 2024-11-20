@@ -38,8 +38,8 @@ class MaterialFeed:
     def check_sensors(self):
         """Проверка состояния датчиков для управления подачей материала."""
         # Чтение состояния датчиков
-        upper_sensor_state = self.upper_sensor['pin'].read()  # Чтение верхнего датчика
-        lower_sensor_state = self.lower_sensor['pin'].read()  # Чтение нижнего датчика
+        upper_sensor_state = self.upper_sensor['chip'].read_pin(self.upper_sensor['pin'])  # Чтение верхнего датчика
+        lower_sensor_state = self.lower_sensor['chip'].read_pin(self.lower_sensor['pin'])  # Чтение нижнего датчика
 
         logger.debug(f"Upper sensor state: {upper_sensor_state}, Lower sensor state: {lower_sensor_state}")
 
@@ -53,13 +53,13 @@ class MaterialFeed:
         """Запуск подачи материала."""
         logger.info("Starting material feed")
         self.feeding = True
-        self.feed_output['pin'].write(1)  # Включение подачи материала
+        self.feed_output['chip'].write_pin(self.feed_output['pin'], 1)  # Включение подачи материала
 
     def stop_feeding(self):
         """Остановка подачи материала."""
         logger.info("Stopping material feed")
         self.feeding = False
-        self.feed_output['pin'].write(0)  # Остановка подачи материала
+        self.feed_output['chip'].write_pin(self.feed_output['pin'], 0)  # Остановка подачи материала
 
     def run(self):
         """Основной цикл проверки состояния датчиков."""
@@ -71,6 +71,7 @@ class MaterialFeed:
 def load_config(config):
     """Загрузка конфигурации и создание объекта MaterialFeed."""
     return MaterialFeed(config)
+
 
 
 

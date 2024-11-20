@@ -134,5 +134,17 @@ class PrinterPins:
         share_name = "%s:%s" % (pin_params['chip_name'], pin_params['pin'])
         self.allow_multi_use_pins[share_name] = True
 
+    def write(self, pin_desc, value):
+        pin_params = self.lookup_pin(pin_desc)
+        if value not in (0, 1):
+            raise error("Invalid value for pin write: %d. Must be 0 or 1." % (value,))
+        # Убедимся, что чип и пин могут записывать данные (чип должен иметь метод write_pin)
+        pin_params['chip'].write_pin(pin_params['pin'], value)
+
+    def read(self, pin_desc):
+        pin_params = self.lookup_pin(pin_desc)
+        # Убедимся, что чип и пин могут считывать данные (чип должен иметь метод read_pin)
+        return pin_params['chip'].read_pin(pin_params['pin'])
+
 def add_printer_objects(config):
     config.get_printer().add_object('pins', PrinterPins())
