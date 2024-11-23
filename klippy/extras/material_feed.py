@@ -15,7 +15,6 @@ logger.addHandler(ch)
 
 class MaterialFeed:
     def __init__(self, config):
-        print("Hello world")
         self.printer = config.get_printer()
         self.gcode = self.printer.lookup_object('gcode')
         self.config = config
@@ -27,39 +26,56 @@ class MaterialFeed:
 
         # Настройка пинов
         ppins = self.printer.lookup_object('pins')
+
         # Используем тип 'endstop' для датчиков (входы с подтягиванием)
         self.upper_sensor = ppins.setup_pin('endstop', self.upper_sensor_pin)
         self.lower_sensor = ppins.setup_pin('endstop', self.lower_sensor_pin)
         # Используем тип 'digital_out' для подачи материала (выходной пин)
         self.feed_output = ppins.setup_pin('digital_out', self.feed_pin)
 
-        self.feeding = False  # Флаг подачи материала
+        # Determine start and shutdown values for upper pin
+        self.upper_sensor.last_value = config.getfloat(
+            'value_upper', 0., minval=0., maxval=1.)
+        self.upper_sensor.shutdown_value = config.getfloat(
+            'shutdown_value_upper', 0., minval=0., maxval=1.)
+        # Determine start and shutdown values for lower pin
+        self.lower_sensor.last_value = config.getfloat(
+            'value_lower', 0., minval=0., maxval=1.)
+        self.lower_sensor.shutdown_value = config.getfloat(
+            'shutdown_value_lower', 0., minval=0., maxval=1.)
+        # Determine start and shutdown values for feed output pin
+        self.feed_output.last_value = config.getfloat(
+            'value_feed', 0., minval=0., maxval=1.)
+        self.feed_output.shutdown_value = config.getfloat(
+            'shutdown_value_feed', 0., minval=0., maxval=1.)
 
     def check_sensors(self):
         """Проверка состояния датчиков для управления подачей материала."""
         # Чтение состояния датчиков
-        upper_sensor_state = self.upper_sensor['chip'].read_pin(self.upper_sensor['pin'])  # Чтение верхнего датчика
-        lower_sensor_state = self.lower_sensor['chip'].read_pin(self.lower_sensor['pin'])  # Чтение нижнего датчика
-
-        logger.debug(f"Upper sensor state: {upper_sensor_state}, Lower sensor state: {lower_sensor_state}")
+        upper_sensor_state = self.upper_sensor.last_value
+        lower_sensor_state = self.lower_sensor.last_value
+        feed_output_state = self.feed_output.last_value
+        logger.debug(
+            f"Upper sensor state: {upper_sensor_state},"
+            f" Lower sensor state: {lower_sensor_state},"
+            f" Feed output state: {feed_output_state}"
+        )
 
         # Логика управления подачей материала
-        if lower_sensor_state == 1 and not self.feeding:
+        if lower_sensor_state == 1 and not feed_output_state:
             self.start_feeding()  # Если нижний датчик активен и материал не подается, начинаем подачу
-        elif upper_sensor_state == 1 and self.feeding:
+        elif upper_sensor_state == 1 and feed_output_state:
             self.stop_feeding()  # Если верхний датчик активен и материал подается, останавливаем подачу
 
     def start_feeding(self):
         """Запуск подачи материала."""
         logger.info("Starting material feed")
-        self.feeding = True
-        self.feed_output['chip'].write_pin(self.feed_output['pin'], 1)  # Включение подачи материала
+        self.feed_output.last_value = 1
 
     def stop_feeding(self):
         """Остановка подачи материала."""
         logger.info("Stopping material feed")
-        self.feeding = False
-        self.feed_output['chip'].write_pin(self.feed_output['pin'], 0)  # Остановка подачи материала
+        self.feed_output.last_value = 0
 
     def run(self):
         """Основной цикл проверки состояния датчиков."""
