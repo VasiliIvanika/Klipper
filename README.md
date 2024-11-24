@@ -1,18 +1,48 @@
-Welcome to the Klipper project!
+Модуль контроля подачи материала для Klipper.
 
-[![Klipper](docs/img/klipper-logo-small.png)](https://www.klipper3d.org/)
+Этот модуль предоставляет управление подачей материала на 3D-принтере с использованием трёх датчиков:
 
-https://www.klipper3d.org/
+upper_sensor (верхний датчик)
 
-Klipper is a 3d-Printer firmware. It combines the power of a general
-purpose computer with one or more micro-controllers. See the
-[features document](https://www.klipper3d.org/Features.html) for more
-information on why you should use Klipper.
+lower_sensor (нижний датчик)
 
-To begin using Klipper start by
-[installing](https://www.klipper3d.org/Installation.html) it.
+feed_output (выходной, управляет подачей материала)
 
-Klipper is Free Software. See the [license](COPYING) or read the
-[documentation](https://www.klipper3d.org/Overview.html). We depend on
-the generous support from our
-[sponsors](https://www.klipper3d.org/Sponsors.html).
+Датчики посылают дискретные сигналы: материал есть или материала нет.
+
+Когда срабатывает нижний датчик, происходит активация подачи материала.
+Подача материала продолжается, пока не сработает верхний датчик, после чего она прекращается.
+Подача материала управляется включением и отключением сигнала (дискретный сигнал).
+
+Установка:
+
+Добавьте модуль, расположенный в klippy/extras/material_feed.py, в вашу установку Klipper.
+После установки импортируйте класс MaterialFeed в файл klippy/extras/__init__.py.
+
+Конфигурация указывается в файле printer.cfg . Укажите пины для датчиков в зависимости от вашего микроконтроллера. 
+
+Необходимые параметры конфигурации:
+
+upper_sensor_pin,
+lower_sensor_pin,
+feed_pin,
+
+Вы также можете указать значения пинов при включении или отключении датчиков:
+
+value_upper,
+shutdown_value_upper,
+value_lower,
+shutdown_value_lower,
+value_feed,
+shutdown_value_feed,
+
+По умолчанию эти значения установлены в 0. Указывать их необязательно, они могут быть использованы для тестирования.
+
+Тестирование:
+
+Тестовые данные предусмотрены для использования с виртуальным контроллером SIMULAVR на AVR atmega644p.
+
+Для подробной инструкции по установке, обратитесь к документации Klipper по отладке, раздел "Testing with simulavr".
+https://www.klipper3d.org/Debugging.html
+
+Конфигурационный файл принтера (printer.cfg) находится в корне проекта.
