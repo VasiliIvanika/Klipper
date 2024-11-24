@@ -16,7 +16,6 @@ logger.addHandler(ch)
 class MaterialFeed:
     def __init__(self, config):
         self.printer = config.get_printer()
-        self.gcode = self.printer.lookup_object('gcode')
         self.config = config
 
         # Чтение пинов для датчиков и подачи материала
@@ -33,17 +32,17 @@ class MaterialFeed:
         # Используем тип 'digital_out' для подачи материала (выходной пин)
         self.feed_output = ppins.setup_pin('digital_out', self.feed_pin)
 
-        # Determine start and shutdown values for upper pin
+        # определяем стартовые и при отключении значения для верхнего пина
         self.upper_sensor.last_value = config.getfloat(
             'value_upper', 0., minval=0., maxval=1.)
         self.upper_sensor.shutdown_value = config.getfloat(
             'shutdown_value_upper', 0., minval=0., maxval=1.)
-        # Determine start and shutdown values for lower pin
+        # определяем стартовые и при отключении значения для нижнего пина
         self.lower_sensor.last_value = config.getfloat(
             'value_lower', 0., minval=0., maxval=1.)
         self.lower_sensor.shutdown_value = config.getfloat(
             'shutdown_value_lower', 0., minval=0., maxval=1.)
-        # Determine start and shutdown values for feed output pin
+        # определяем стартовые и при отключении значения для выходного пина
         self.feed_output.last_value = config.getfloat(
             'value_feed', 0., minval=0., maxval=1.)
         self.feed_output.shutdown_value = config.getfloat(
